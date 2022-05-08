@@ -2,7 +2,7 @@
 
 ** Usage
 
-This project uses [[https://nixos.org/][nix]].
+This project uses [[https://nixos.org/][nix]]. It also depends on [[https://wkhtmltopdf.org/][wkhtmltopdf]], which will be installed with the ~haskell-invoice~ bash script.
 
 Build:
 #+begin_src sh
@@ -11,7 +11,7 @@ $ nix-build
 
 Create an invoice:
 #+begin_src sh
-./run 0047.yaml
+./haskell-invoice 0047.yaml
 #+end_src
 
 This will create the invoice ~0047.pdf~.
