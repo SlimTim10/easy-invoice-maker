@@ -1,0 +1,51 @@
+* haskell-invoice
+
+** Usage
+
+Build:
+#+begin_src sh
+$ nix-build
+#+end_src
+
+Create an invoice:
+#+begin_src sh
+./result/bin/haskell-invoice 0047.yaml | wkhtmltopdf - 0047.pdf
+#+end_src
+
+This will create two files: 0047.html and 0047.pdf
+
+** Parameters
+
+See defaults.yaml and 0047.yaml for basic example.
+
+~defaults.yaml~ is for setting the default ~from~ and ~notes (string, optional)~ information to use in every invoice. These can be overridden by providing values in the invoice body (e.g., 0047.yaml).
+
+The invoice body contains:
+- date (string, optional)
+- from (optional)
+  - name (string)
+  - website (string, optional)
+  - email (string)
+- to
+  - name (string)
+  - email (string)
+- items (list)
+  - name (string)
+  - description (string, optional)
+  - qtyHrs (number)
+  - unitPrice (number)
+
+** Adding dependencies
+
+- Update haskell-invoice.cabal
+- Update haskell-invoice.nix
+
+If the package is not found, get it from GitHub:
+
+#+begin_src sh
+$ cabal2nix --no-check https://github.com/JustusAdam/mustache.git --revision 530c0f10188fdaead9688d56f728b87fabcb228b > nix/mustache.nix
+#+end_src
+
+- Update default.nix
+
+For more information, read: https://github.com/Gabriella439/haskell-nix/tree/main/project1

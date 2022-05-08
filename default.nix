@@ -6,8 +6,8 @@ let
           haskell-invoice =
             haskellPackagesNew.callPackage ./haskell-invoice.nix { };
           
-          decimal =
-            haskellPackagesNew.callPackage ./nix/Decimal.nix { };
+          mustache =
+            haskellPackagesNew.callPackage ./nix/mustache.nix { };
         };
       };
     };

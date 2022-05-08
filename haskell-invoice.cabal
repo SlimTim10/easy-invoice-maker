@@ -30,8 +30,17 @@ executable haskell-invoice
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
     build-depends:
-        base ^>=4.14.3.0,
-        time ^>=1.9.3,
-        Decimal ^>=0.5.2
+        base ^>=4.14.3.0
+      , time ^>=1.9.3
+      , Decimal ^>=0.5.2
+      , mustache ^>=2.4.0
+      , yaml ^>=0.11.7.0
+      , bytestring ^>=0.10.12.0
+      , text ^>=1.2.4.1
+      , unordered-containers ^>=0.2.14.0
+      , safe-money ^>=0.9.1
+      , safe-money-aeson ^>=0.1.1
+      , filepath ^>=1.4.2.1
     hs-source-dirs:   app
     default-language: Haskell2010
+    ghc-options: -Wall -Wredundant-constraints -Wincomplete-uni-patterns -Wincomplete-record-updates

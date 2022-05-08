@@ -1,0 +1,9 @@
+from:
+  name: Bob Smith
+  website: https://google.ca
+  email: bob.smith@gmail.com
+notes: |
+  You can pay by sending an e-Transfer to:
+  BOB SMITH (google@gmail.com)
+  Please pay the balance within 7 days.
+  Thank you for your business!

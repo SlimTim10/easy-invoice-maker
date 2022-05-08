@@ -1,0 +1,15 @@
+to:
+  name: Alice Smith
+  email: alice.smith@gmail.com
+items:
+  - name: Private mentoring
+    description: Review and lesson on relational databases.
+    qtyHrs: 1
+    unitPrice: 100
+  - name: Interview practice
+    description: Systems design. "How would you design Instagram?"
+    qtyHrs: 1.5
+    unitPrice: 80
+  - name: Tip
+    qtyHrs: 1
+    unitPrice: 5.50
