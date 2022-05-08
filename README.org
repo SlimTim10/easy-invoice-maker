@@ -2,6 +2,8 @@
 
 ** Usage
 
+Install [[https://wkhtmltopdf.org/][wkhtmltopdf]].
+
 Build:
 #+begin_src sh
 $ nix-build
@@ -12,7 +14,7 @@ Create an invoice:
 ./result/bin/haskell-invoice 0047.yaml | wkhtmltopdf - 0047.pdf
 #+end_src
 
-This will create two files: 0047.html and 0047.pdf
+This will create the invoice ~0047.pdf~.
 
 ** Parameters
 
@@ -49,3 +51,8 @@ $ cabal2nix --no-check https://github.com/JustusAdam/mustache.git --revision 530
 - Update default.nix
 
 For more information, read: https://github.com/Gabriella439/haskell-nix/tree/main/project1
+
+** TO-DO
+
+- Bundle wkhtmltopdf with the project
+- Automatic emailing
