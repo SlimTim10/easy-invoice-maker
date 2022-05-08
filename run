@@ -1,0 +1,7 @@
+#! /usr/bin/env nix-shell
+#! nix-shell -i bash -p wkhtmltopdf
+
+filename=$(basename -- "$@")
+filename="${filename%.*}"
+
+./result/bin/haskell-invoice "$@" | wkhtmltopdf - "$filename.pdf"

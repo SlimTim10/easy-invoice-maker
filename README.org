@@ -2,7 +2,7 @@
 
 ** Usage
 
-Install [[https://wkhtmltopdf.org/][wkhtmltopdf]].
+This project uses [[https://nixos.org/][nix]].
 
 Build:
 #+begin_src sh
@@ -11,7 +11,7 @@ $ nix-build
 
 Create an invoice:
 #+begin_src sh
-./result/bin/haskell-invoice 0047.yaml | wkhtmltopdf - 0047.pdf
+./run 0047.yaml
 #+end_src
 
 This will create the invoice ~0047.pdf~.
@@ -54,5 +54,4 @@ For more information, read: https://github.com/Gabriella439/haskell-nix/tree/mai
 
 ** TO-DO
 
-- Bundle wkhtmltopdf with the project
 - Automatic emailing
