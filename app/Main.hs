@@ -162,15 +162,3 @@ main = do
         . Mustache.toMustache
         . Yaml.toJSON
         $ invoice
-
-      -- Write to a file instead
-      
-      -- let outFilePath = FP.replaceExtension invoiceFilePath "html"
-      
-      -- TIO.writeFile outFilePath
-      --   . Mustache.substitute template
-      --   . Mustache.toMustache
-      --   . Yaml.toJSON
-      --   $ invoice
-
-      -- putStrLn $ "Wrote to file: " ++ outFilePath
