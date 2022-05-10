@@ -16,7 +16,7 @@ Add or edit the parameter files (see following sections)
 
 Create an invoice:
 #+begin_src sh
-./haskell-invoice 0047.yaml
+$ ./haskell-invoice 0047.yaml
 #+end_src
 
 This will create the invoice file ~0047.pdf~.
