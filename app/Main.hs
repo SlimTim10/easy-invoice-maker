@@ -21,7 +21,7 @@ import qualified Email as Email
 main :: IO ()
 main = do
   invoiceFilePath <- head <$> Env.getArgs
-  Mustache.automaticCompile ["."] "template.mustache" >>= \case
+  Mustache.automaticCompile ["templates"] "invoice.mustache" >>= \case
     Left err -> print err
     Right template -> do
       
@@ -64,7 +64,7 @@ main = do
             (Invoice.toEmail . Invoice.invTo $ invoice)
       invoiceAttachment <- Mime.filePart "application/pdf" invoicePdf
 
-      Mustache.automaticCompile ["."] "email.mustache" >>= \case
+      Mustache.automaticCompile ["templates"] "email.mustache" >>= \case
         Left err -> print err
         Right emailTemplate -> do
           let emailTemplateParams = Email.Template
