@@ -38,6 +38,7 @@ executable haskell-invoice
         LambdaCase
         ScopedTypeVariables
         DuplicateRecordFields
+        FlexibleInstances
     build-depends:
         base ^>=4.14.3.0
       , time ^>=1.9.3

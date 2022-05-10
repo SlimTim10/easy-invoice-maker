@@ -14,6 +14,8 @@ import qualified Network.Mail.SMTP as SMTP
 import qualified Network.Mail.Mime as Mime
 import qualified System.Process as Proc
 import qualified System.Directory as Dir
+import qualified Control.Monad.IO.Class as IO
+import qualified Control.Exception as E
 
 import qualified Invoice as Invoice
 import qualified Email as Email
@@ -21,13 +23,25 @@ import qualified Email as Email
 main :: IO ()
 main = do
   invoiceFilePath <- head <$> Env.getArgs
-  Mustache.automaticCompile ["templates"] "invoice.mustache" >>= \case
-    Left err -> print err
-    Right template -> do
-      
+
+  invoice <- prepareInvoice invoiceFilePath
+  let invoiceHtml = FP.replaceExtension invoiceFilePath "html"
+  template <- automaticCompileThrow ["templates"] "invoice.mustache"
+  createHtml template invoice invoiceHtml
+
+  let invoicePdf = FP.replaceExtension invoiceFilePath "pdf"
+  createPdf invoiceHtml invoicePdf
+
+  Dir.removeFile invoiceHtml
+
+  sendEmail invoiceFilePath invoicePdf invoice
+
+  where
+    prepareInvoice :: FP.FilePath -> IO (Invoice.Invoice)
+    prepareInvoice fp = do
       defaultParams :: Invoice.InvoiceDefaults <- Yaml.decodeFileThrow
-        (FP.replaceFileName invoiceFilePath "defaults.yaml")
-      bodyParams :: Invoice.InvoiceBody <- Yaml.decodeFileThrow invoiceFilePath
+        (FP.replaceFileName fp "defaults.yaml")
+      bodyParams :: Invoice.InvoiceBody <- Yaml.decodeFileThrow fp
       let fromParams :: Invoice.From =
             case Invoice.bodyFrom bodyParams of
               Just x -> x
@@ -35,25 +49,19 @@ main = do
                 Just x -> x
                 Nothing -> Invoice.From "" Nothing ""
       currentDate <- date
-      let invoiceNumber = T.pack $ FP.takeBaseName invoiceFilePath
-      let invoice = Invoice.Invoice
-            { Invoice.invNumber = invoiceNumber
-            , Invoice.invDate = fromMaybe currentDate (Invoice.bodyDate bodyParams)
-            , Invoice.invFrom = fromParams
-            , Invoice.invTo = Invoice.bodyTo bodyParams
-            , Invoice.invItems = Invoice.bodyItems bodyParams
-            , Invoice.invBalanceDue = sum . map Invoice.itemTotalPrice $ Invoice.bodyItems bodyParams
-            , Invoice.invNotes = Invoice.defaultNotes defaultParams
-            }
+      let invoiceNumber = T.pack $ FP.takeBaseName fp
+      return $ Invoice.Invoice
+        { Invoice.invNumber = invoiceNumber
+        , Invoice.invDate = fromMaybe currentDate (Invoice.bodyDate bodyParams)
+        , Invoice.invFrom = fromParams
+        , Invoice.invTo = Invoice.bodyTo bodyParams
+        , Invoice.invItems = Invoice.bodyItems bodyParams
+        , Invoice.invBalanceDue = sum . map Invoice.itemTotalPrice $ Invoice.bodyItems bodyParams
+        , Invoice.invNotes = Invoice.defaultNotes defaultParams
+        }
 
-      let invoiceHtml = FP.replaceExtension invoiceFilePath "html"
-      createHtml invoice template invoiceHtml
-      
-      let invoicePdf = FP.replaceExtension invoiceFilePath "pdf"
-      createPdf invoiceHtml invoicePdf
-      
-      Dir.removeFile invoiceHtml
-
+    sendEmail :: FP.FilePath -> FP.FilePath -> Invoice.Invoice -> IO ()
+    sendEmail invoiceFilePath invoicePdf invoice = do
       emailParams :: Email.Email <- Yaml.decodeFileThrow (FP.replaceFileName invoiceFilePath "email.yaml")
       let emailSubject = Email.subject emailParams
       let emailFrom = SMTP.Address
@@ -64,42 +72,42 @@ main = do
             (Invoice.toEmail . Invoice.invTo $ invoice)
       invoiceAttachment <- Mime.filePart "application/pdf" invoicePdf
 
-      Mustache.automaticCompile ["templates"] "email.mustache" >>= \case
-        Left err -> print err
-        Right emailTemplate -> do
-          let emailTemplateParams = Email.Template
-                { Email.toName = Invoice.toName . Invoice.invTo $ invoice
-                , Email.invoiceNumber = invoiceNumber
-                , Email.footer = Email.footer (emailParams :: Email.Email)
-                }
-          let emailBody = Mime.plainPart
-                . L.fromStrict
-                . Mustache.substitute emailTemplate
-                . Mustache.toMustache
-                . Yaml.toJSON
-                $ emailTemplateParams
-          let parts = [emailBody, invoiceAttachment]
-          let mail = SMTP.simpleMail
-                emailFrom
-                [emailTo]
-                [] -- CC
-                [] -- BCC
-                emailSubject
-                parts
-          SMTP.sendMailWithLoginTLS
-            (T.unpack . Email.server . Email.login $ emailParams)
-            (T.unpack . Email.username . Email.login $ emailParams)
-            (T.unpack . Email.password . Email.login $ emailParams)
-            mail
+      emailTemplate <- automaticCompileThrow ["templates"] "email.mustache"
+      let emailTemplateParams = Email.Template
+            { Email.toName = Invoice.toName . Invoice.invTo $ invoice
+            , Email.invoiceNumber = Invoice.invNumber invoice
+            , Email.footer = Email.footer (emailParams :: Email.Email)
+            }
+      let emailBody = Mime.plainPart
+            . L.fromStrict
+            . Mustache.substitute emailTemplate
+            . Mustache.toMustache
+            . Yaml.toJSON
+            $ emailTemplateParams
+      let parts = [emailBody, invoiceAttachment]
+      let mail = SMTP.simpleMail
+            emailFrom
+            [emailTo]
+            [] -- CC
+            [] -- BCC
+            emailSubject
+            parts
+      SMTP.sendMailWithLoginTLS
+        (T.unpack . Email.server . Email.login $ emailParams)
+        (T.unpack . Email.username . Email.login $ emailParams)
+        (T.unpack . Email.password . Email.login $ emailParams)
+        mail
 
+-- | Get current date as format "May 8, 2022"
 date :: IO T.Text
 date = Time.getCurrentTime
   >>= return
   . T.pack
   . Time.formatTime Time.defaultTimeLocale "%b %-d, %Y"
 
-createHtml :: Invoice.Invoice -> Mustache.Template -> FP.FilePath -> IO ()
-createHtml invoice template fp = TIO.writeFile fp
+-- | Apply mustache template to invoice, creating HTML file
+createHtml :: Mustache.Template -> Invoice.Invoice -> FP.FilePath -> IO ()
+createHtml template invoice fp = TIO.writeFile fp
   . Mustache.substitute template
   . Mustache.toMustache
   . Yaml.toJSON
@@ -108,3 +116,10 @@ createHtml invoice template fp = TIO.writeFile fp
 -- | Create PDF out of HTML using wkhtmltopdf
 createPdf :: FP.FilePath -> FP.FilePath -> IO ()
 createPdf inFile outFile = Proc.callProcess "wkhtmltopdf" [inFile, outFile]
+
+newtype ParseException = ParseException String
+  deriving (Show)
+instance E.Exception ParseException
+automaticCompileThrow :: [FP.FilePath] -> FP.FilePath -> IO (Mustache.Template)
+automaticCompileThrow searchSpace f = IO.liftIO
+  $ Mustache.automaticCompile searchSpace f >>= either (E.throwIO . ParseException . show) return
