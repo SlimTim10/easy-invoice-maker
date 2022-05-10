@@ -9,18 +9,23 @@ Build:
 $ nix-build
 #+end_src
 
+Add or edit the parameter files (see following sections)
+- ~defaults.yaml~
+- ~0047.yaml~ (a file with the invoice number as its name)
+- ~email.yaml~
+
 Create an invoice:
 #+begin_src sh
 ./haskell-invoice 0047.yaml
 #+end_src
 
-This will create the invoice ~0047.pdf~.
+This will create the invoice file ~0047.pdf~.
 
 ** Parameters
 
-See defaults.yaml and 0047.yaml for basic example.
+The invoice body information must be in YAML format (e.g., see ~0047.yaml~). The file should be provided as an argument to ~haskell-invoice~. A second file, ~defaults.yaml~ should be located in the same directory as the invoice body file. See ~defaults.yaml~ and ~0047.yaml~ for basic example.
 
-~defaults.yaml~ is for setting the default ~from~ and ~notes (string, optional)~ information to use in every invoice. These can be overridden by providing values in the invoice body (e.g., 0047.yaml).
+~defaults.yaml~ is for setting the default ~from~ and ~notes (string, optional)~ information to use in every invoice. These can be overridden by providing values in the invoice body.
 
 The invoice body contains:
 - date (string, optional)
@@ -37,6 +42,10 @@ The invoice body contains:
   - qtyHrs (number)
   - unitPrice (number)
 
+** Email
+
+Put email and SMTP information in ~email.yaml~, in the same directory as the invoice body. For Gmail, create an [[https://myaccount.google.com/u/1/apppasswords][app password]] ([[https://support.google.com/accounts/answer/185833?hl=en][help center]]).
+
 ** Adding dependencies
 
 - Update haskell-invoice.cabal
@@ -51,7 +60,3 @@ $ cabal2nix --no-check https://github.com/JustusAdam/mustache.git --revision 530
 - Update default.nix
 
 For more information, read: https://github.com/Gabriella439/haskell-nix/tree/main/project1
-
-** TO-DO
-
-- Automatic emailing

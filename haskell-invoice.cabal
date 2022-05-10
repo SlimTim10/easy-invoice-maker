@@ -25,10 +25,19 @@ executable haskell-invoice
     main-is:          Main.hs
 
     -- Modules included in this executable, other than Main.
-    -- other-modules:
+    other-modules:
+        Invoice
+        Email
 
     -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
+    default-extensions:
+        DeriveGeneric
+        DeriveAnyClass
+        DataKinds
+        OverloadedStrings
+        LambdaCase
+        ScopedTypeVariables
+        DuplicateRecordFields
     build-depends:
         base ^>=4.14.3.0
       , time ^>=1.9.3
@@ -41,6 +50,10 @@ executable haskell-invoice
       , safe-money ^>=0.9.1
       , safe-money-aeson ^>=0.1.1
       , filepath ^>=1.4.2.1
+      , smtp-mail ^>=0.3.0.0
+      , mime-mail ^>=0.5.1
+      , process ^>=1.6.13.2
+      , directory ^>=1.3.6.0
     hs-source-dirs:   app
     default-language: Haskell2010
     ghc-options: -Wall -Wredundant-constraints -Wincomplete-uni-patterns -Wincomplete-record-updates

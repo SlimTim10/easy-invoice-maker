@@ -1,134 +1,22 @@
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE DataKinds #-}
 module Main where
 
 import Data.Maybe (fromMaybe)
 import qualified Data.Text.IO as TIO
+import qualified Data.Text as T
+import qualified Data.Text.Lazy as L
 import qualified Data.Time.Clock as Time
 import qualified Data.Time.Format as Time
--- import qualified Data.Decimal as Decimal
 import qualified Text.Mustache as Mustache
 import qualified Data.Yaml as Yaml
-import Data.Yaml ((.:), (.:?), (.=))
-import qualified GHC.Generics as Generic
-import qualified Data.Text as T
-import qualified Money
 import qualified System.Environment as Env
 import qualified System.FilePath as FP
+import qualified Network.Mail.SMTP as SMTP
+import qualified Network.Mail.Mime as Mime
+import qualified System.Process as Proc
+import qualified System.Directory as Dir
 
-data InvoiceFrom = InvoiceFrom
-  { fromName :: String
-  , fromWebsite :: Maybe String
-  , fromEmail :: String
-  } deriving (Show, Eq, Generic.Generic, Yaml.ToJSON)
-
-instance Yaml.FromJSON InvoiceFrom where
-  parseJSON = Yaml.withObject "InvoiceFrom" $ \o -> InvoiceFrom
-    <$> o .: "name"
-    <*> o .:? "website"
-    <*> o .: "email"
-
-data InvoiceTo = InvoiceTo
-  { toName :: String
-  , toEmail :: String
-  } deriving (Show, Eq, Generic.Generic, Yaml.ToJSON)
-
-instance Yaml.FromJSON InvoiceTo where
-  parseJSON = Yaml.withObject "InvoiceTo" $ \o -> InvoiceTo
-    <$> o .: "name"
-    <*> o .: "email"
-
-data InvoiceItem = InvoiceItem
-  { itemName :: String
-  , itemDescription :: Maybe String
-  , itemQtyHrs :: Float
-  , itemUnitPrice :: Money.Dense "CAD"
-  , itemTotalPrice :: Money.Dense "CAD"
-  } deriving (Show, Eq, Generic.Generic)
-
-instance Yaml.ToJSON InvoiceItem where
-  toJSON (InvoiceItem nm des qh up tp) = Yaml.object
-    [ ("itemName" .= nm)
-    , ("itemDescription" .= des)
-    , ("itemQtyHrs" .= qh)
-    , ("itemUnitPrice" .= showMoney up)
-    , ("itemTotalPrice" .= showMoney tp)
-    ]
-
-instance Yaml.FromJSON InvoiceItem where
-  parseJSON = Yaml.withObject "item" $ \o -> do
-    name <- o .: "name"
-    description <- o .:? "description"
-    qtyHrs <- o .: "qtyHrs"
-    unitPriceRaw <- o .: "unitPrice"
-    let unitPrice = floatToMoney unitPriceRaw
-    let totalPrice = floatToMoney qtyHrs * unitPrice
-    return $ InvoiceItem name description qtyHrs unitPrice totalPrice
-
-data InvoiceDefaults = InvoiceDefaults
-  { defaultFrom :: Maybe InvoiceFrom
-  , defaultNotes :: Maybe String
-  } deriving (Show, Eq, Generic.Generic, Yaml.ToJSON)
-
-instance Yaml.FromJSON InvoiceDefaults where
-  parseJSON = Yaml.withObject "InvoiceDefaults" $ \o -> InvoiceDefaults
-    <$> o .:? "from"
-    <*> o .:? "notes"
-
-data InvoiceBody = InvoiceBody
-  { bodyDate :: Maybe String
-  , bodyFrom :: Maybe InvoiceFrom
-  , bodyTo :: InvoiceTo
-  , bodyItems :: [InvoiceItem]
-  } deriving (Show, Eq, Generic.Generic, Yaml.ToJSON)
-
-instance Yaml.FromJSON InvoiceBody where
-  parseJSON = Yaml.withObject "InvoiceBody" $ \o -> InvoiceBody
-    <$> o .:? "date"
-    <*> o .:? "from"
-    <*> o .: "to"
-    <*> o .: "items"
-
-data Invoice = Invoice
-  { invNumber :: String
-  , invDate :: String
-  , invFrom :: InvoiceFrom
-  , invTo :: InvoiceTo
-  , invItems :: [InvoiceItem]
-  , invBalanceDue :: Money.Dense "CAD"
-  , invNotes :: Maybe String
-  } deriving (Show, Eq, Generic.Generic)
-
-instance Yaml.ToJSON Invoice where
-  toJSON (Invoice n dt f t is bal nts) = Yaml.object
-    [ ("invNumber" .= n)
-    , ("invDate" .= dt)
-    , ("invFrom" .= f)
-    , ("invTo" .= t)
-    , ("invItems" .= is)
-    , ("invBalanceDue" .= showMoneyWithCurrency bal)
-    , ("invNotes" .= nts)
-    ]
-
-showMoney :: Money.Dense "CAD" -> T.Text
-showMoney x = "$" <> Money.denseToDecimal Money.defaultDecimalConf Money.Round x
-
-showMoneyWithCurrency :: Money.Dense "CAD" -> T.Text
-showMoneyWithCurrency x =
-  "$"
-  <> Money.denseToDecimal Money.defaultDecimalConf Money.Round x
-  <> " "
-  <> Money.denseCurrency x
-
-floatToMoney :: Float -> Money.Dense "CAD"
-floatToMoney = Money.dense' . toRational
-
-date :: IO String
-date = Time.getCurrentTime >>= return . Time.formatTime Time.defaultTimeLocale "%b %-d, %Y"
+import qualified Invoice as Invoice
+import qualified Email as Email
 
 main :: IO ()
 main = do
@@ -137,28 +25,86 @@ main = do
     Left err -> print err
     Right template -> do
       
-      defaultParams :: InvoiceDefaults <- Yaml.decodeFileThrow "defaults.yaml"
-      bodyParams :: InvoiceBody <- Yaml.decodeFileThrow invoiceFilePath
-      let fromParams :: InvoiceFrom =
-            case bodyFrom bodyParams of
+      defaultParams :: Invoice.InvoiceDefaults <- Yaml.decodeFileThrow
+        (FP.replaceFileName invoiceFilePath "defaults.yaml")
+      bodyParams :: Invoice.InvoiceBody <- Yaml.decodeFileThrow invoiceFilePath
+      let fromParams :: Invoice.From =
+            case Invoice.bodyFrom bodyParams of
               Just x -> x
-              Nothing -> case defaultFrom defaultParams of
+              Nothing -> case Invoice.defaultFrom defaultParams of
                 Just x -> x
-                Nothing -> InvoiceFrom "" Nothing ""
+                Nothing -> Invoice.From "" Nothing ""
       currentDate <- date
-      let invoiceNumber = FP.takeBaseName invoiceFilePath
-      let invoice = Invoice
-            { invNumber = invoiceNumber
-            , invDate = fromMaybe currentDate (bodyDate bodyParams)
-            , invFrom = fromParams
-            , invTo = bodyTo bodyParams
-            , invItems = bodyItems bodyParams
-            , invBalanceDue = sum . map itemTotalPrice $ bodyItems bodyParams
-            , invNotes = defaultNotes defaultParams
+      let invoiceNumber = T.pack $ FP.takeBaseName invoiceFilePath
+      let invoice = Invoice.Invoice
+            { Invoice.invNumber = invoiceNumber
+            , Invoice.invDate = fromMaybe currentDate (Invoice.bodyDate bodyParams)
+            , Invoice.invFrom = fromParams
+            , Invoice.invTo = Invoice.bodyTo bodyParams
+            , Invoice.invItems = Invoice.bodyItems bodyParams
+            , Invoice.invBalanceDue = sum . map Invoice.itemTotalPrice $ Invoice.bodyItems bodyParams
+            , Invoice.invNotes = Invoice.defaultNotes defaultParams
             }
 
-      TIO.putStrLn
-        . Mustache.substitute template
-        . Mustache.toMustache
-        . Yaml.toJSON
-        $ invoice
+      let invoiceHtml = FP.replaceExtension invoiceFilePath "html"
+      createHtml invoice template invoiceHtml
+      
+      let invoicePdf = FP.replaceExtension invoiceFilePath "pdf"
+      createPdf invoiceHtml invoicePdf
+      
+      Dir.removeFile invoiceHtml
+
+      emailParams :: Email.Email <- Yaml.decodeFileThrow (FP.replaceFileName invoiceFilePath "email.yaml")
+      let emailSubject = Email.subject emailParams
+      let emailFrom = SMTP.Address
+            (Just . Email.name . Email.from $ emailParams)
+            (Email.address . Email.from $ emailParams)
+      let emailTo = SMTP.Address
+            (Just . Invoice.toName . Invoice.invTo $ invoice)
+            (Invoice.toEmail . Invoice.invTo $ invoice)
+      invoiceAttachment <- Mime.filePart "application/pdf" invoicePdf
+
+      Mustache.automaticCompile ["."] "email.mustache" >>= \case
+        Left err -> print err
+        Right emailTemplate -> do
+          let emailTemplateParams = Email.Template
+                { Email.toName = Invoice.toName . Invoice.invTo $ invoice
+                , Email.invoiceNumber = invoiceNumber
+                , Email.footer = Email.footer (emailParams :: Email.Email)
+                }
+          let emailBody = Mime.plainPart
+                . L.fromStrict
+                . Mustache.substitute emailTemplate
+                . Mustache.toMustache
+                . Yaml.toJSON
+                $ emailTemplateParams
+          let parts = [emailBody, invoiceAttachment]
+          let mail = SMTP.simpleMail
+                emailFrom
+                [emailTo]
+                [] -- CC
+                [] -- BCC
+                emailSubject
+                parts
+          SMTP.sendMailWithLoginTLS
+            (T.unpack . Email.server . Email.login $ emailParams)
+            (T.unpack . Email.username . Email.login $ emailParams)
+            (T.unpack . Email.password . Email.login $ emailParams)
+            mail
+
+date :: IO T.Text
+date = Time.getCurrentTime
+  >>= return
+  . T.pack
+  . Time.formatTime Time.defaultTimeLocale "%b %-d, %Y"
+
+createHtml :: Invoice.Invoice -> Mustache.Template -> FP.FilePath -> IO ()
+createHtml invoice template fp = TIO.writeFile fp
+  . Mustache.substitute template
+  . Mustache.toMustache
+  . Yaml.toJSON
+  $ invoice
+
+-- | Create PDF out of HTML using wkhtmltopdf
+createPdf :: FP.FilePath -> FP.FilePath -> IO ()
+createPdf inFile outFile = Proc.callProcess "wkhtmltopdf" [inFile, outFile]
