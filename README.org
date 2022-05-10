@@ -1,5 +1,36 @@
 * haskell-invoice
 
+** Description
+
+Easily generate PDF invoices which are emailed automatically to the client. From a simple YAML file, a PDF invoice is generated and sent to the client.
+
+Example:
+#+begin_src yaml
+to:
+  name: Alice Smith
+  email: alice.smith@gmail.com
+items:
+  - name: Development
+    description: Website design and development.
+    qtyHrs: 65
+    unitPrice: 100
+  - name: Domain hosting
+    description: 1 year
+    qtyHrs: 1
+    unitPrice: 180
+#+end_src
+
+** Features
+
+- User-friendly templating
+  - The invoice and email templates use [[https://mustache.github.io/][Mustache]] for easy customization
+- Automatic emailing
+  - The invoice is automatically sent to the client from your account.
+- Type-safe YAML parsing
+  - For example, ~qtyHrs~ (quantity/hours) is supposed to be a number, so if any other type of value is given (e.g., ~abc~), the parsing will fail and show a helpful error message. Likewise, any missing parameters will be caught.
+- Type-safe money operations
+  - The [[https://hackage.haskell.org/package/safe-money][safe-money]] Haskell library offers type-safe and lossless encoding and operations for monetary values in all world currencies. This means that rounding errors won't occur when calculating the invoice prices.
+
 ** Usage
 
 This project uses [[https://nixos.org/][nix]]. It also depends on [[https://wkhtmltopdf.org/][wkhtmltopdf]], which will be installed with the ~haskell-invoice~ bash script.
@@ -60,3 +91,7 @@ $ cabal2nix --no-check https://github.com/JustusAdam/mustache.git --revision 530
 - Update default.nix
 
 For more information, read: https://github.com/Gabriella439/haskell-nix/tree/main/project1
+
+** TO-DO
+
+- Allow confirmation before emailing PDF
