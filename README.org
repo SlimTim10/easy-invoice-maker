@@ -20,6 +20,8 @@ items:
     unitPrice: 180
 #+end_src
 
+See [[examples][examples]] for complete exampes.
+
 ** Features
 
 - User-friendly templating
