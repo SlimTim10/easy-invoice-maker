@@ -30,6 +30,7 @@ executable haskell-invoice
     other-modules:
         Invoice
         Email
+        Paths_haskell_invoice
 
     -- LANGUAGE extensions used by modules in this package.
     default-extensions:
