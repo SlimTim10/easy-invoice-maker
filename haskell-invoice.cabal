@@ -21,6 +21,8 @@ maintainer:         slimtim10@gmail.com
 -- category:
 extra-source-files: CHANGELOG.md
 
+data-files: templates/*.mustache
+
 executable haskell-invoice
     main-is:          Main.hs
 
