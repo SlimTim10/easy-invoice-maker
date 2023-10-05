@@ -12,6 +12,9 @@ let
       };
     };
   };
+  config.permittedInsecurePackages = [
+    "qtwebkit-5.212.0-alpha4"
+  ];
 
   pkgs = import <nixpkgs> { inherit config; };
 
