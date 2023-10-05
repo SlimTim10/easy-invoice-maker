@@ -33,9 +33,42 @@ See [[examples][examples]] for complete exampes.
 - Type-safe money operations
   - The [[https://hackage.haskell.org/package/safe-money][safe-money]] Haskell library offers type-safe and lossless encoding and operations for monetary values in all world currencies. This means that rounding errors won't occur when calculating the invoice prices.
 
-** Usage
+** Installation and usage
+
+To include it in your nix environment, add it to your list of packages in your configuration:
+
+#+begin_src sh
+{ pkgs, ... }:
+
+let
+  haskell-invoice = (import (builtins.fetchGit {
+    name = "haskell-invoice";
+    url = "https://github.com/SlimTim10/haskell-invoice/";
+  }));
+
+in
+{
+  environment.systemPackages = with pkgs; [
+    haskell-invoice
+  ];
+}
+#+end_src
 
 This project uses [[https://nixos.org/][nix]]. It also depends on [[https://wkhtmltopdf.org/][wkhtmltopdf]], which will be installed with the resulting application.
+
+Add or edit the parameter files (see following sections)
+- ~defaults.yaml~
+- ~0047.yaml~ (a file with the invoice number as its name)
+- ~email.yaml~
+
+Create an invoice:
+#+begin_src sh
+$ haskell-invoice 0047.yaml
+#+end_src
+
+This will create the invoice file ~0047.pdf~.
+
+** Development
 
 Build:
 #+begin_src sh
@@ -47,14 +80,14 @@ Add or edit the parameter files (see following sections)
 - ~0047.yaml~ (a file with the invoice number as its name)
 - ~email.yaml~
 
-Create an invoice:
+Use the resulting binary:
 #+begin_src sh
 $ ./result/bin/haskell-invoice 0047.yaml
 #+end_src
 
 This will create the invoice file ~0047.pdf~.
 
-** Parameters
+** Invoice parameters
 
 The invoice body information must be in YAML format (e.g., see ~0047.yaml~). The file should be provided as an argument to ~haskell-invoice~. A second file, ~defaults.yaml~ should be located in the same directory as the invoice body file. See ~defaults.yaml~ and ~0047.yaml~ for basic example.
 
