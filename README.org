@@ -35,7 +35,7 @@ See [[examples][examples]] for complete exampes.
 
 ** Usage
 
-This project uses [[https://nixos.org/][nix]]. It also depends on [[https://wkhtmltopdf.org/][wkhtmltopdf]], which will be installed with the ~haskell-invoice~ bash script.
+This project uses [[https://nixos.org/][nix]]. It also depends on [[https://wkhtmltopdf.org/][wkhtmltopdf]], which will be installed with the resulting application.
 
 Build:
 #+begin_src sh
@@ -49,7 +49,7 @@ Add or edit the parameter files (see following sections)
 
 Create an invoice:
 #+begin_src sh
-$ ./haskell-invoice 0047.yaml
+$ ./result/bin/haskell-invoice 0047.yaml
 #+end_src
 
 This will create the invoice file ~0047.pdf~.

@@ -15,6 +15,4 @@ let
 
   pkgs = import <nixpkgs> { inherit config; };
 
-in
-  { haskell-invoice = pkgs.haskellPackages.haskell-invoice;
-  }
+in pkgs.haskellPackages.haskell-invoice
