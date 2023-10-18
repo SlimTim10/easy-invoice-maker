@@ -7,6 +7,8 @@
 , safe-money-aeson
 , smtp-mail
 , mime-mail
+, bytestring
+, time
 , writeShellApplication
 , wkhtmltopdf
 }:
@@ -26,6 +28,8 @@ let
       safe-money-aeson
       smtp-mail
       mime-mail
+      bytestring
+      time
     ];
     license = lib.licenses.bsd3;
   };
