@@ -44,11 +44,11 @@ executable haskell-invoice
         FlexibleInstances
     build-depends:
         base >=4.14.3.0
-      , time ^>=1.9.3
+      , time
       , Decimal ^>=0.5.2
       , mustache ^>=2.4.0
       , yaml ^>=0.11.7.0
-      , bytestring ^>=0.10.12.0
+      , bytestring
       , text ^>=1.2.4.1
       , unordered-containers ^>=0.2.14.0
       , safe-money ^>=0.9.1
