@@ -1,5 +1,5 @@
 cabal-version:      2.4
-name:               haskell-invoice
+name:               easy-invoice-maker
 version:            0.1.0.0
 
 -- A short (one-line) description of the package.
@@ -23,14 +23,14 @@ extra-source-files: CHANGELOG.md
 
 data-files: templates/*.mustache
 
-executable haskell-invoice
+executable easy-invoice-maker
     main-is:          Main.hs
 
     -- Modules included in this executable, other than Main.
     other-modules:
         Invoice
         Email
-        Paths_haskell_invoice
+        Paths_easy_invoice_maker
 
     -- LANGUAGE extensions used by modules in this package.
     default-extensions:

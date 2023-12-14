@@ -16,7 +16,7 @@ import qualified System.Process as Proc
 import qualified System.Directory as Dir
 import qualified Control.Monad.IO.Class as IO
 import qualified Control.Exception as E
-import qualified Paths_haskell_invoice
+import qualified Paths_easy_invoice_maker
 
 import qualified Invoice as Invoice
 import qualified Email as Email
@@ -27,7 +27,7 @@ main = do
 
   invoice <- prepareInvoice invoiceFilePath
   let invoiceHtml = FP.replaceExtension invoiceFilePath "html"
-  templatesFilePath <- Paths_haskell_invoice.getDataFileName "templates"
+  templatesFilePath <- Paths_easy_invoice_maker.getDataFileName "templates"
   template <- automaticCompileThrow [templatesFilePath] "invoice.mustache"
   createHtml template invoice invoiceHtml
 
@@ -74,7 +74,7 @@ main = do
             (Invoice.toEmail . Invoice.invTo $ invoice)
       invoiceAttachment <- Mime.filePart "application/pdf" invoicePdf
 
-      templatesFilePath <- Paths_haskell_invoice.getDataFileName "templates"
+      templatesFilePath <- Paths_easy_invoice_maker.getDataFileName "templates"
       emailTemplate <- automaticCompileThrow [templatesFilePath] "email.mustache"
       let emailTemplateParams = Email.Template
             { Email.toName = Invoice.toName . Invoice.invTo $ invoice

@@ -14,8 +14,8 @@
 }:
 
 let
-  haskell-invoice = mkDerivation {
-    pname = "haskell-invoice";
+  easy-invoice-maker = mkDerivation {
+    pname = "easy-invoice-maker";
     version = "0.1.0.0";
     src = ./.;
     isLibrary = false;
@@ -36,13 +36,13 @@ let
 
 in
 writeShellApplication {
-  name = "haskell-invoice";
+  name = "easy-invoice-maker";
   runtimeInputs = [
-    haskell-invoice
+    easy-invoice-maker
     wkhtmltopdf
   ];
 
   text = ''
-    haskell-invoice "$@"
+    easy-invoice-maker "$@"
   '';
 }

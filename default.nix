@@ -3,8 +3,8 @@ let
     packageOverrides = pkgs: rec {
       haskellPackages = pkgs.haskellPackages.override {
         overrides = haskellPackagesNew: haskellPackagesOld: rec {
-          haskell-invoice =
-            haskellPackagesNew.callPackage ./haskell-invoice.nix { };
+          easy-invoice-maker =
+            haskellPackagesNew.callPackage ./easy-invoice-maker.nix { };
           
           mustache =
             haskellPackagesNew.callPackage ./nix/mustache.nix { };
@@ -18,4 +18,4 @@ let
 
   pkgs = import <nixpkgs> { inherit config; };
 
-in pkgs.haskellPackages.haskell-invoice
+in pkgs.haskellPackages.easy-invoice-maker

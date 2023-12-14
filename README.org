@@ -1,4 +1,4 @@
-* haskell-invoice
+* Easy Invoice Maker
 
 ** Description
 
@@ -41,15 +41,15 @@ To include it in your nix environment, add it to your list of packages in your c
 { pkgs, ... }:
 
 let
-  haskell-invoice = (import (builtins.fetchGit {
-    name = "haskell-invoice";
-    url = "https://github.com/SlimTim10/haskell-invoice/";
+  easy-invoice-maker = (import (builtins.fetchGit {
+    name = "easy-invoice-maker";
+    url = "https://github.com/SlimTim10/easy-invoice-maker/";
   }));
 
 in
 {
   environment.systemPackages = with pkgs; [
-    haskell-invoice
+    easy-invoice-maker
   ];
 }
 #+end_src
@@ -63,7 +63,7 @@ Add or edit the parameter files (see following sections)
 
 Create an invoice:
 #+begin_src sh
-$ haskell-invoice 0047.yaml
+$ easy-invoice-maker 0047.yaml
 #+end_src
 
 This will create the invoice file ~0047.pdf~.
@@ -82,14 +82,14 @@ Add or edit the parameter files (see following sections)
 
 Use the resulting binary:
 #+begin_src sh
-$ ./result/bin/haskell-invoice 0047.yaml
+$ ./result/bin/easy-invoice-maker 0047.yaml
 #+end_src
 
 This will create the invoice file ~0047.pdf~.
 
 ** Invoice parameters
 
-The invoice body information must be in YAML format (e.g., see ~0047.yaml~). The file should be provided as an argument to ~haskell-invoice~. A second file, ~defaults.yaml~ should be located in the same directory as the invoice body file. See ~defaults.yaml~ and ~0047.yaml~ for basic example.
+The invoice body information must be in YAML format (e.g., see ~0047.yaml~). The file should be provided as an argument to ~easy-invoice-maker~. A second file, ~defaults.yaml~ should be located in the same directory as the invoice body file. See ~defaults.yaml~ and ~0047.yaml~ for basic example.
 
 ~defaults.yaml~ is for setting the default ~from~ and ~notes (string, optional)~ information to use in every invoice. These can be overridden by providing values in the invoice body.
 
@@ -114,8 +114,8 @@ Put email and SMTP information in ~email.yaml~, in the same directory as the inv
 
 ** Adding dependencies
 
-- Update haskell-invoice.cabal
-- Update haskell-invoice.nix
+- Update easy-invoice-maker.cabal
+- Update easy-invoice-maker.nix
 
 If the package is not found, get it from GitHub:
 
