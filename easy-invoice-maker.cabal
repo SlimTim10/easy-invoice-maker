@@ -49,7 +49,7 @@ executable easy-invoice-maker
       , mustache ^>=2.4.0
       , yaml ^>=0.11.7.0
       , bytestring
-      , text
+      , text ^>=1.2.4.1
       , unordered-containers ^>=0.2.14.0
       , safe-money ^>=0.9.1
       , safe-money-aeson ^>=0.1.1

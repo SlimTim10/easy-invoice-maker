@@ -9,6 +9,7 @@
 , mime-mail
 , bytestring
 , time
+, text
 , writeShellApplication
 , wkhtmltopdf
 }:
@@ -30,6 +31,7 @@ let
       mime-mail
       bytestring
       time
+      text
     ];
     license = lib.licenses.bsd3;
   };
