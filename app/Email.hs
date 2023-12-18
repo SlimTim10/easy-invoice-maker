@@ -23,7 +23,7 @@ data Email = Email
   } deriving (Show, Eq, Generic.Generic, Yaml.ToJSON, Yaml.FromJSON)
 
 data Template = Template
-  { toName :: T.Text
-  , invoiceNumber :: T.Text
-  , footer :: T.Text
+  { templateToName :: T.Text
+  , templateInvoiceNumber :: T.Text
+  , templateFooter :: T.Text
   } deriving (Show, Eq, Generic.Generic, Yaml.ToJSON)

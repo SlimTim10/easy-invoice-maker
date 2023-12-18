@@ -77,9 +77,9 @@ main = do
       templatesFilePath <- Paths_easy_invoice_maker.getDataFileName "templates"
       emailTemplate <- automaticCompileThrow [templatesFilePath] "email.mustache"
       let emailTemplateParams = Email.Template
-            { Email.toName = Invoice.toName . Invoice.invTo $ invoice
-            , Email.invoiceNumber = Invoice.invNumber invoice
-            , Email.footer = Email.footer (emailParams :: Email.Email)
+            { templateToName = Invoice.toName . Invoice.invTo $ invoice
+            , templateInvoiceNumber = Invoice.invNumber invoice
+            , templateFooter = Email.footer emailParams
             }
       let emailBody = Mime.plainPart
             . L.fromStrict
