@@ -1,5 +1,7 @@
 * Easy Invoice Maker
 
+#+html: <p align="center"><img src="screenshot.png" /></p>
+
 ** Description
 
 Easily generate PDF invoices which are emailed automatically to the client. From a simple YAML file, a PDF invoice is generated and sent to the client.
