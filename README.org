@@ -39,7 +39,7 @@ See [[examples][examples]] for complete exampes.
 
 To include it in your nix environment, add it to your list of packages in your configuration:
 
-#+begin_src sh
+#+begin_src nix
 { pkgs, ... }:
 
 let
@@ -53,6 +53,25 @@ in
   environment.systemPackages = with pkgs; [
     easy-invoice-maker
   ];
+}
+#+end_src
+
+Or, use Nix flakes and add it as an input:
+
+#+begin_src nix
+{
+  inputs = {
+    # ...
+    easy-invoice-maker = {
+      url = "github:SlimTim10/easy-invoice-maker";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+  };
+
+  outputs = { easy-invoice-maker , ... }: {
+    # ...
+    easy-invoice-maker.packages."${pkgs.system}".easy-invoice-maker
+  };
 }
 #+end_src
 
@@ -75,6 +94,11 @@ This will create the invoice file ~0047.pdf~.
 Build:
 #+begin_src sh
 $ nix-build
+#+end_src
+
+Or, using Nix flakes:
+#+begin_src sh
+$ nix build
 #+end_src
 
 Add or edit the parameter files (see following sections)
