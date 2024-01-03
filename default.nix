@@ -1,13 +1,16 @@
+{
+  nixpkgs ? import <nixpkgs>
+}:
+
 let
-  inherit (pkgs) haskell wkhtmltopdf;
-  addRuntimeDependency = drv: x: addRuntimeDependencies drv [x];
-  addRuntimeDependencies = drv: xs: haskell.lib.overrideCabal drv (drv: {
+  addRuntimeDependency = drv: dep: addRuntimeDependencies drv [ dep ];
+  addRuntimeDependencies = drv: deps: pkgs.haskell.lib.overrideCabal drv (drv: {
     buildDepends = (drv.buildDepends or []) ++ [ pkgs.makeWrapper ];
     postInstall = ''
       ${drv.postInstall or ""}
       for exe in "$out/bin/"* ; do
         wrapProgram "$exe" --prefix PATH ":" \
-          ${pkgs.lib.makeBinPath xs}
+          ${pkgs.lib.makeBinPath deps}
       done
     '';
   });
@@ -24,11 +27,10 @@ let
         };
       };
     };
+
+    permittedInsecurePackages = [ "qtwebkit-5.212.0-alpha4" ];
   };
-  config.permittedInsecurePackages = [
-    "qtwebkit-5.212.0-alpha4"
-  ];
 
-  pkgs = import <nixpkgs> { inherit config; };
+  pkgs = nixpkgs { inherit config; };
 
-in addRuntimeDependency pkgs.haskellPackages.easy-invoice-maker wkhtmltopdf
+in addRuntimeDependency pkgs.haskellPackages.easy-invoice-maker pkgs.wkhtmltopdf
