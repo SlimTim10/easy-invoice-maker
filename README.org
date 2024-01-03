@@ -37,6 +37,8 @@ See [[examples][examples]] for complete exampes.
 
 ** Installation and usage
 
+This project uses [[https://nixos.org/][nix]]. It also depends on [[https://wkhtmltopdf.org/][wkhtmltopdf]], which will be installed with the resulting application.
+
 To include it in your nix environment, add it to your list of packages in your configuration:
 
 #+begin_src nix
@@ -74,8 +76,6 @@ Or, use Nix flakes and add it as an input:
   };
 }
 #+end_src
-
-This project uses [[https://nixos.org/][nix]]. It also depends on [[https://wkhtmltopdf.org/][wkhtmltopdf]], which will be installed with the resulting application.
 
 Add or edit the parameter files (see following sections)
 - ~defaults.yaml~
